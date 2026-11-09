@@ -2,6 +2,18 @@
 # Parte 1: Librerías, logs, excepciones y clase abstracta 
 
 
-# Importación las librerías necesarias para el funcionamiento del programa
+# Importo las librerías necesarias para el funcionamiento del programa
 from abc import ABC, abstractmethod
 import logging
+
+# Creo el logging para registrar eventos y errores del programa
+logging.basicConfig(
+    filename="software_fj.log",
+    filemode="a",
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    datefmt="%d/%m/%Y %H:%M:%S",
+    encoding="utf-8"
+)
+
+logger = logging.getLogger("SoftwareFJ")
