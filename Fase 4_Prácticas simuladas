@@ -1,0 +1,7 @@
+# SISTEMA INTEGRAL DE GESTIÓN DE CLIENTES, SERVICIOS Y RESERVAS
+# Parte 1: Librerías, logs, excepciones y clase abstracta 
+
+
+# Importación las librerías necesarias para el funcionamiento del programa
+from abc import ABC, abstractmethod
+import logging
