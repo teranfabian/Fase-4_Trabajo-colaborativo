@@ -17,3 +17,80 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("SoftwareFJ")
+
+
+# Excepciones personalizadas 
+class ErrorSistema(Exception):
+    """
+    Excepción general del sistema.
+
+    Todas las excepciones personalizadas del programa
+    heredarán de esta clase.
+"""
+    pass
+
+class DatoInvalidoError(ErrorSistema):
+    """
+    Se produce cuando un dato no cumple las validaciones. 
+    """
+    pass
+
+class ClienteDuplicadoError(ErrorSistema):
+    """
+    Se produce cuando se intenta registrar un cliente
+    que ya existe en el sistema.
+    """
+    pass
+
+class ClienteNoEncontradoError(ErrorSistema):
+    """
+    Se produce cuando no se encuentra un cliente registrado.
+    """
+    pass
+
+class ServicioduplicadoError(ErrorSistema):
+    """
+    Se produce cuando se intenta registrar un servicio
+    que ya existe en el sistema.
+    """
+    pass
+
+class ServicioNoEncontradoError(ErrorSistema):
+    """
+    Se produce cuando no se encuentra un servicio registrado.
+    """
+    pass
+
+class ServicioNoDisponibleError(ErrorSistema):
+    """
+    Se produce cuando se intenta reservar un servicio
+    que no está disponible.
+    """
+    pass
+
+class ReservaDuplicadaError(ErrorSistema):
+    """
+    Se produce cuando se intenta registrar una reserva
+    con un código que ya existe.
+    """
+    pass
+
+class ReservaInvalidaError(ErrorSistema):
+    """
+    Se produce cuando una reserva contiene datos incorrectos.
+    """
+    pass
+
+class OperacionNoPermitidaError(ErrorSistema):
+    """
+    Se produce cuando se intenta realizar una operación
+    que no está permitida.
+    """
+    pass
+
+class CalculoCostoError(ErrorSistema):
+    """
+    Se produce cuando ocurre una inconsistencia durante
+    el cálculo del costo de un servicio.
+    """
+    pass
