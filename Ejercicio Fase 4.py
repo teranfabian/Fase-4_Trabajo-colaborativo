@@ -233,3 +233,147 @@ class Cliente(Entidad):
             "Cliente con código %s fue registrado correctamente.",
             self.codigo
         )
+
+
+# validaciones de los datos del cliente
+    @staticmethod
+    def __validar_identificacion(identificacion):
+        """
+        Valida que la identificación sea una cadena no vacía.
+        """
+        if not isinstance(identificacion, str):
+            raise DatoInvalidoError(
+                "La identificación debe ser una cadena de texto."
+            )
+            
+        identificacion = identificacion.strip()
+            
+        if not identificacion:
+            raise DatoInvalidoError(
+                "La identificación no puede estar vacía."
+            )
+            
+        if not identificacion.isdigit():
+            raise DatoInvalidoError(
+                "La identificación debe contener solo dígitos."
+            )
+                
+        if len(identificacion) < 5 or len(identificacion) > 15:
+            raise DatoInvalidoError(
+                "La identificación debe tener entre 5 y 15 dígitos."
+            )
+                
+        return identificacion
+        
+        
+    @staticmethod
+    def __validar_nombre(nombre):
+        """
+        Valida que el nombre sea una cadena no vacía.
+        """
+        if not isinstance(nombre, str):
+            raise DatoInvalidoError(
+                "El nombre debe ser una cadena de texto."
+            )
+            
+        # Elimino espacios en blanco al inicio y al final del nombre
+        nombre = nombre.strip()
+        nombre = " ".join(nombre.split())  # Reemplazo múltiples espacios por uno solo
+            
+        if not nombre:
+            raise DatoInvalidoError(
+                "El nombre no puede estar vacío."
+            )
+            
+        if len(nombre) < 2 or len(nombre) > 50:
+            raise DatoInvalidoError(
+                "El nombre debe tener entre 2 y 50 caracteres."
+            )
+            
+        # Permito que el nombre contenga letras, espacios, guiones y apóstrofes
+        for caracter in nombre:
+            if not (
+                caracter.isalpha() 
+                or caracter.isspace()
+                or caracter in "-'"
+                ):
+                    
+                raise DatoInvalidoError(
+                    "El nombre solo puede contener letras, "
+                    "espacios, guiones y apóstrofes."
+                )
+            
+        # Devuelvo el nombre con la primera letra de cada palabra en mayúscula
+        return nombre.title()
+        
+        
+    @staticmethod
+    def __validar_email(email):
+        """
+        Valida que el email sea una cadena no vacía y tenga un formato válido.
+        """
+        if not isinstance(email, str):
+            raise DatoInvalidoError(
+                "El email debe ser una cadena de texto."
+            )
+            
+        # Elimino espacios en blanco al inicio y al final del email y lo convierto a minúsculas
+        email = email.strip().lower()
+            
+        if not email:
+            raise DatoInvalidoError(
+                "El email no puede estar vacío."
+            )
+            
+        if len(email) < 10 or len(email) > 100:
+            raise DatoInvalidoError(
+                "El email debe tener entre 10 y 100 caracteres."
+            )
+            
+        # Valido el formato del email usando una expresión regular
+        patron_email = r"^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$"
+            
+        if not re.fullmatch(patron_email, email):
+            raise DatoInvalidoError(
+                "El email no tiene un formato válido."
+            )
+            
+        return email.lower()
+
+    
+    @staticmethod
+    def __validar_telefono(telefono):
+        """
+        Valida que el teléfono sea una cadena no vacía y tenga un formato válido.
+        """
+        if not isinstance(telefono, str):
+            raise DatoInvalidoError(
+                "El teléfono debe ser una cadena de texto."
+            )
+            
+        # Elimino espacios en blanco al inicio y al final del teléfono
+        telefono = telefono.strip()
+            
+        if not telefono:
+            raise DatoInvalidoError(
+                "El teléfono no puede estar vacío."
+            )
+            
+        # Permite el signo + solamente al comienzo
+        if telefono.startswith("+"):
+            numero = telefono[1:]
+        else:
+            numero = telefono
+            
+        if not numero.isdigit():
+            raise DatoInvalidoError(
+                "El teléfono debe contener solo dígitos " 
+                "y opcionalmente un signo + al inicio."
+            )
+            
+        if len(numero) < 7 or len(numero) > 15:
+            raise DatoInvalidoError(
+                "El teléfono debe tener entre 7 y 15 dígitos."
+            )
+                
+        return telefono
