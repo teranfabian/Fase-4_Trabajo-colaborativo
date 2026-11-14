@@ -377,3 +377,77 @@ class Cliente(Entidad):
             )
                 
         return telefono
+
+# Propiedades para consultar y modificar los atributos del cliente    
+    @property
+    def identificacion(self):
+        """
+        Permite consultar la identificación del cliente.
+        """
+        return self.__identificacion
+        
+    @property
+    def nombre(self):
+        """
+        Permite consultar el nombre del cliente.
+        """
+        return self.__nombre
+        
+    @nombre.setter
+    def nombre(self, nuevo_nombre):
+        """
+        Permite modificar el nombre del cliente.
+        """
+        nombre_anterior = self.__nombre
+        self.__nombre = self.__validar_nombre(nuevo_nombre)
+            
+        logger.info(
+            "Nombre del cliente %s actualizado de %s a %s.",
+            self.codigo,
+            nombre_anterior,
+            self.__nombre
+        )
+        
+    @property
+    def email(self):
+        """
+        Permite consultar el email del cliente.
+        """
+        return self.__email
+        
+    @email.setter
+    def email(self, nuevo_email):
+        """
+        Permite modificar el email del cliente.
+        """
+        email_anterior = self.__email
+        self.__email = self.__validar_email(nuevo_email)
+            
+        logger.info(
+            "Email del cliente %s actualizado de %s a %s.",
+            self.codigo,
+            email_anterior,
+            self.__email
+            )
+            
+    @property
+    def telefono(self):
+        """
+        Permite consultar el teléfono del cliente.
+        """
+        return self.__telefono
+        
+    @telefono.setter
+    def telefono(self, nuevo_telefono):
+        """
+        Permite modificar el teléfono del cliente.
+        """
+        telefono_anterior = self.__telefono
+        self.__telefono = self.__validar_telefono(nuevo_telefono)
+            
+        logger.info(
+            "Teléfono del cliente %s actualizado de %s a %s.",
+            self.codigo,
+            telefono_anterior,
+            self.__telefono
+        )
