@@ -451,3 +451,20 @@ class Cliente(Entidad):
             telefono_anterior,
             self.__telefono
         )
+
+
+    # Sobrescribo el método abstracto mostrar_informacion de la clase Entidad        
+    def mostrar_informacion(self):
+        """
+        Muestro la información del cliente.
+        """
+        estado = "Activo" if self.activo else "Inactivo"
+            
+        return (
+            f"Código: {self.codigo}\n"
+            f"Identificación: {self.__identificacion}\n"
+            f"Nombre: {self.__nombre}\n"
+            f"Email: {self.__email}\n"
+            f"Teléfono: {self.__telefono}\n"
+            f"Estado: {estado}\n"
+        )
