@@ -325,9 +325,9 @@ class Cliente(Entidad):
                 "El email no puede estar vacío."
             )
             
-        if len(email) < 10 or len(email) > 100:
+        if len(email) < 6 or len(email) > 30:
             raise DatoInvalidoError(
-                "El email debe tener entre 10 y 100 caracteres."
+                "El email debe tener entre 6 y 30 caracteres."
             )
             
         # Valido el formato del email usando una expresión regular
@@ -467,4 +467,252 @@ class Cliente(Entidad):
             f"Email: {self.__email}\n"
             f"Teléfono: {self.__telefono}\n"
             f"Estado: {estado}\n"
+        )
+
+
+# ------------------------------------------------------------------           
+# Parte 3:  Clase abstracta Servicio y clases derivadas
+
+class Servicio(Entidad, ABC):
+    """
+    Representa los servicios ofrecidos por la empresa Software FJ.
+    """
+    
+    def __init__(self, codigo, nombre,  precio_base, disponible=True):
+                
+        # Llamo al constructor de la clase base Entidad
+        super().__init__(codigo)
+        
+        # Almaceno los datos validados en atributos privados
+        self.__nombre = self.__validar_nombre(nombre)
+        self.__precio_base = self.__validar_precio_base(precio_base)
+        self.__disponible = self.__validar_disponible(disponible)
+
+        logger.info(
+            "Datos generales del servicio %s validados correctamente.",
+            self.codigo
+        )
+    
+    # Validaciones de los datos del servicio    
+    @staticmethod
+    def __validar_nombre(nombre):
+        """
+        Valida el nombre del servicio.
+        """
+        if not isinstance(nombre, str):
+            raise DatoInvalidoError(
+                "El nombre del servicio debe ser una cadena de texto."
+            )
+            
+        # Elimino espacios en blanco al inicio y al final del nombre
+        nombre = nombre.strip()
+        nombre = " ".join(nombre.split())  # Reemplazo múltiples espacios por uno solo
+            
+        if not nombre:
+            raise DatoInvalidoError(
+                "El nombre del servicio no puede estar vacío."
+            )
+            
+        if len(nombre) < 2 or len(nombre) > 50:
+            raise DatoInvalidoError(
+                "El nombre del servicio debe tener entre 2 y 50 caracteres."
+            )
+            
+        # Devuelvo el nombre con la primera letra de cada palabra en mayúscula
+        return nombre.title()
+    
+    @staticmethod
+    def __validar_precio_base(precio_base):
+        """
+        Valida el precio base del servicio.
+        """
+        if  isinstance(precio_base, bool):
+            raise DatoInvalidoError(
+                "El precio base del servicio debe ser un número."
+            )
+            
+        try:
+            precio_base = float(precio_base)
+        
+        except (ValueError, TypeError) as error_original:
+            raise DatoInvalidoError(
+                "El precio base del servicio debe ser un valor numérico."
+            ) from error_original
+
+        if precio_base <= 0:
+            raise DatoInvalidoError(
+                "El precio base del servicio debe ser mayor que cero."
+            )
+
+        return precio_base
+    
+    @staticmethod
+    def __validar_disponible(disponible):
+        """
+        Valida el estado de disponibilidad del servicio.
+        """
+        if not isinstance(disponible, bool):
+            raise DatoInvalidoError(
+                "El estado de disponibilidad del servicio debe ser un valor booleano."
+            )
+        
+        return disponible
+      
+    @staticmethod
+    def _validar_duracion(duracion):
+        """
+        Valida la duración del servicio.
+        """
+        if isinstance(duracion, bool):
+            raise DatoInvalidoError(
+                "La duración debe ser un valor numérico."
+            )
+            
+        try:
+            duracion = float(duracion)
+
+        except (ValueError, TypeError) as error_original:
+            raise DatoInvalidoError(
+                "La duración debe ser un valor numérico."
+            ) from error_original
+        
+        if duracion <= 0:
+            raise DatoInvalidoError(
+                "La duración del servicio debe ser mayor que cero."
+            )
+        
+        return duracion    
+    
+    @staticmethod
+    def _aplicar_ajustes(subtotal, impuesto=0, descuento=0):
+        """
+        Aplica ajustes al subtotal del servicio.
+        """
+        if (
+            isinstance(subtotal, bool) or
+            isinstance(impuesto, bool) or
+            isinstance(descuento, bool)
+        ):
+                
+            raise CalculoCostoError(
+                "El subtotal, el impuesto y el descuento deben ser valores numéricos."
+            )
+        
+        try:
+            subtotal = float(subtotal)
+            impuesto = float(impuesto)
+            descuento = float(descuento)
+        
+        except (ValueError, TypeError) as error_original:
+            raise CalculoCostoError(
+                "El subtotal, el impuesto y el descuento deben ser numéricos."
+            ) from error_original
+        
+        if subtotal < 0:
+            raise CalculoCostoError(
+                "El subtotal no puede ser negativo."
+            )
+
+        if impuesto < 0 or impuesto > 1:
+            raise CalculoCostoError(
+                "El impuesto debe estar entre 0 y 1."
+            )
+        
+        if descuento < 0 or descuento > 1:
+            raise CalculoCostoError(
+                "El descuento debe estar entre 0 y 1."
+            )
+            
+        total_con_impuesto = subtotal * (1 + impuesto)
+        total = total_con_impuesto * (1 - descuento)
+        
+        return round(total, 2)
+    
+    @abstractmethod
+    def calcular_costo(self, duracion, impuesto=0, descuento=0):
+        """Calcula el costo total del servicio."""
+        pass
+    
+    @abstractmethod
+    def describir_servicio(self):
+        """Método abstracto que deberá implementarse en todas las clases derivadas."""
+        pass
+    
+    @abstractmethod
+    def validar_parametros(self):
+        """Método abstracto que deberá implementarse en todas las clases derivadas."""
+        pass
+    
+
+    # Propiedades para consultar los atributos del servicio
+    @property
+    def nombre(self):
+        """Permite consultar el nombre del servicio."""
+        return self.__nombre
+    
+    @property
+    def precio_base(self):
+        """Permite consultar el precio base del servicio."""
+        return self.__precio_base
+    
+    @property
+    def disponible(self):
+        """Permite consultar si el servicio está disponible."""
+        return self.__disponible
+    
+    
+    def habilitar_disponibilidad(self):
+        """Habilita la disponibilidad del servicio."""
+        if self.__disponible:
+            raise OperacionNoPermitidaError(
+                f"El servicio con código {self.codigo} ya está disponible."
+            )
+        
+        self.__disponible = True
+        logger.info(
+            "Servicio con código %s fue establecido como disponible.",
+            self.codigo
+        )
+        
+    def deshabilitar_disponibilidad(self):
+        """Deshabilita la disponibilidad del servicio."""
+        if not self.__disponible:
+            raise OperacionNoPermitidaError(
+                f"El servicio con código {self.codigo} ya no está disponible."
+            )
+        
+        self.__disponible = False
+        logger.info(
+            "Servicio con código %s fue establecido como no disponible.",
+            self.codigo
+        )
+    
+    def verificar_disponibilidad(self):
+        """Verifica si el servicio está activo y disponible."""
+        
+        if not self.activo:
+            raise OperacionNoPermitidaError(
+                f"El servicio con código {self.codigo} no está activo."
+            )
+            
+        if not self.__disponible:
+            raise ServicioNoDisponibleError(
+                f"El servicio con código {self.codigo} no está disponible."
+            )
+    
+    def mostrar_informacion(self):
+        """Muestra la información del servicio."""
+        estado = "Activo" if self.activo else "Inactivo"
+        
+        disponibilidad = (
+            "Disponible" if self.__disponible 
+            else "No Disponible"
+            )
+        
+        return (
+            f"Código: {self.codigo}\n"
+            f"Servicio: {self.__nombre}\n"
+            f"Precio Base: ${self.__precio_base:.2f}\n"
+            f"Estado: {estado}\n"
+            f"Disponibilidad: {disponibilidad}\n"
         )
