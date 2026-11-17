@@ -716,3 +716,106 @@ class Servicio(Entidad, ABC):
             f"Estado: {estado}\n"
             f"Disponibilidad: {disponibilidad}\n"
         )
+
+
+# _______________ Clase derivada (ReservaSala)
+
+class ReservaSala(Servicio):
+    
+    def __init__(self, codigo, nombre, precio_base, 
+                 capacidad, tipo_sala, recargo, disponible=True):
+        
+        # Llamo al constructor de la clase base Servicio
+        super().__init__(codigo, nombre, precio_base, disponible)
+        
+        # Defino los atributos específicos de la reserva de sala
+        self.__capacidad = capacidad
+        self.__tipo_sala = tipo_sala
+        self.__recargo = recargo
+        
+        self.validar_parametros()
+        
+        logger.info(
+            "Servicio de reserva de sala con código %s fue creado correctamente.",
+            self.codigo
+        )
+        
+    def validar_parametros(self):
+        """
+        Valida la capacidad, el tipo de sala y el recargo.
+        """
+        if (not isinstance(self.__capacidad, int) 
+            or isinstance (self.__capacidad, bool)):
+            
+            raise DatoInvalidoError(
+                "La capacidad de la sala debe ser un número entero."
+                )
+        
+        if self.__capacidad <= 0:
+            raise DatoInvalidoError(
+                "La capacidad de la sala debe ser mayor que cero."
+                )
+        
+        if not isinstance(self.__tipo_sala, str):
+            raise DatoInvalidoError(
+                "El tipo de sala debe ser una cadena de texto."
+                )
+            
+        self.__tipo_sala = self.__tipo_sala.strip().title()
+        
+        if not self.__tipo_sala:
+            raise DatoInvalidoError(
+                "El tipo de sala no puede estar vacío."
+                )
+            
+        if isinstance(self.__recargo, bool):
+            raise DatoInvalidoError(
+                "El recargo debe ser un valor numérico."
+                )
+        
+        try:
+            self.__recargo = float(self.__recargo)
+            
+        except (ValueError, TypeError) as error_original:
+            raise DatoInvalidoError(
+                "El recargo debe ser un valor numérico."
+                ) from error_original
+            
+        if self.__recargo < 0:
+            raise DatoInvalidoError(
+                "El recargo no puede ser negativo."
+                )
+    
+    def calcular_costo(self, duracion, impuesto=0, descuento=0):
+        """
+        Calcula el costo total de la reserva de sala.
+        """
+        
+        self.verificar_disponibilidad()
+        duracion = self._validar_duracion(duracion)
+        
+        subtotal = (self.precio_base * duracion )+ self.__recargo
+        total = self._aplicar_ajustes(subtotal, impuesto, descuento)
+        
+        logger.info(
+            "Costo calculado para reserva de sala con código %s: "
+            "Subtotal: %.2f, Impuesto: %.2f, Descuento: %.2f, Total: %.2f",
+            self.codigo,
+            subtotal,
+            impuesto,
+            descuento,
+            total
+        )
+        
+        return total
+    
+    def describir_servicio(self):
+        """
+        Devuelve la descripción de la sala.
+        """
+        return (
+            f"Reserva de Sala: {self.nombre}\n"
+            f"Capacidad: {self.__capacidad} personas\n"
+            f"Tipo de Sala: {self.__tipo_sala}\n"
+            f"Recargo: ${self.__recargo:.2f}\n"
+        )
