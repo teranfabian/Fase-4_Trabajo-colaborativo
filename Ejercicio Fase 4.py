@@ -819,3 +819,111 @@ class ReservaSala(Servicio):
             f"Tipo de Sala: {self.__tipo_sala}\n"
             f"Recargo: ${self.__recargo:.2f}\n"
         )
+
+
+# ________________ Clase derivada (AlquilerEquipo)
+
+class AlquilerEquipo(Servicio):
+    """ 
+    Representa el servicio de alquiler de equipos. 
+    """
+    
+    def __init__(self, codigo, nombre, precio_base, 
+                 tipo_equipo, cantidad, deposito, disponible=True):
+        
+        # Llamo al constructor de la clase base Servicio
+        super().__init__(codigo, nombre, precio_base, disponible)
+        
+        # Defino los atributos específicos del alquiler de equipo
+        self.__tipo_equipo = tipo_equipo
+        self.__cantidad = cantidad
+        self.__deposito = deposito
+        
+        self.validar_parametros()
+        
+        logger.info(
+            "Servicio de alquiler de equipo con código %s fue creado correctamente.",
+            self.codigo
+        )
+    
+    def validar_parametros(self):
+        """
+        Valida el tipo de equipo, la cantidad y el depósito.
+        """
+        if not isinstance(self.__tipo_equipo, str):
+            raise DatoInvalidoError(
+                "El tipo de equipo debe ser una cadena de texto."
+                )
+            
+        self.__tipo_equipo = self.__tipo_equipo.strip().title()
+        
+        if not self.__tipo_equipo:
+            raise DatoInvalidoError(
+                "El tipo de equipo no puede estar vacío."
+                )
+            
+        if ( 
+            not isinstance(self.__cantidad, int) 
+            or isinstance(self.__cantidad, bool)
+            ):
+                
+            raise DatoInvalidoError(
+                "La cantidad de equipos debe ser un número entero."
+                )        
+            
+        if self.__cantidad <= 0:
+            raise DatoInvalidoError(
+                "La cantidad de equipos debe ser mayor que cero."
+                )
+            
+        if isinstance(self.__deposito, bool):
+            raise DatoInvalidoError(
+                "El depósito debe ser un valor numérico."
+                )
+        
+        try:
+            self.__deposito = float(self.__deposito)
+        except (TypeError, ValueError) as error_original:
+            raise DatoInvalidoError(
+                "El depósito debe ser un valor numérico."
+                ) from error_original
+            
+        if self.__deposito < 0:
+            raise DatoInvalidoError(
+                "El depósito no puede ser negativo."
+                )
+    
+    def calcular_costo(self, duracion, impuesto=0, descuento=0):
+        
+        """
+        Calcula el costo total del alquiler de equipo.
+        """
+        
+        self.verificar_disponibilidad()
+        duracion = self._validar_duracion(duracion)
+        
+        subtotal = (self.precio_base * duracion * self.__cantidad) + self.__deposito
+        total = self._aplicar_ajustes(subtotal, impuesto, descuento)
+        
+        logger.info(
+            "Costo calculado para alquiler de equipo con código %s: "
+            "Subtotal: %.2f, Impuesto: %.2f, Descuento: %.2f, Total: %.2f",
+            self.codigo,
+            subtotal,
+            impuesto,
+            descuento,
+            total
+        )
+        
+        return total
+    
+    def describir_servicio(self):
+        """
+        Devuelve la descripción del alquiler de equipo.
+        """
+        return (
+            f"Alquiler de Equipo: {self.nombre}\n"
+            f"Tipo de Equipo: {self.__tipo_equipo}\n"
+            f"Cantidad: {self.__cantidad}\n"
+            f"Depósito: ${self.__deposito:.2f}\n"
+        )
