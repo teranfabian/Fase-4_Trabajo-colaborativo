@@ -1032,3 +1032,356 @@ class AsesoriaEspecializada(Servicio):
             f"Nivel de Asesoría: {self.__nivel_asesoria}\n"
             f"Multiplicador: {self.TIPOS_ASESORIA[self.__nivel_asesoria]:.2f}\n"
         )
+
+
+# ----------------------------------------------------------------
+# Parte 4: Clase Reserva
+
+class Reserva(Entidad):
+    
+    """
+    Representa una reserva de un servicio por parte de un cliente.
+    """
+    ESTADOS_VALIDOS = {
+        "Pendiente", 
+        "Confirmada", 
+        "Cancelada", 
+        "Completada"}
+    
+    def __init__(self, codigo, cliente, servicio, duracion, impuesto=0, descuento=0):
+        
+        cliente_validado = self.__validar_cliente(cliente)
+        servicio_validado = self.__validar_servicio(servicio)
+        duracion_validada = self.__validar_duracion(duracion)
+        impuesto_validado = self.__validar_porcentaje(impuesto,"impuesto")
+        descuento_validado = self.__validar_porcentaje(descuento,"descuento")
+        
+        # Llamo al constructor de la clase base Entidad
+        super().__init__(codigo)
+        
+        # Valido y almaceno los datos de la reserva
+        self.__cliente = cliente_validado
+        self.__servicio = servicio_validado
+        self.__duracion = duracion_validada
+        self.__impuesto = impuesto_validado
+        self.__descuento = descuento_validado
+        self.__estado = None
+        self.__cambiar_estado("Pendiente")
+        self.__costo_total = 0.0
+        
+        logger.info(
+            "Reserva con código %s fue creada en estado pendiente.",
+            self.codigo
+        )
+        
+    @staticmethod
+    def __validar_cliente(cliente):
+        """
+        Valida que el cliente sea una instancia de la clase Cliente.
+        """
+        
+        if not isinstance(cliente, Cliente):
+            raise ReservaInvalidaError(
+                "La reserva debe estar asociada a un cliente válido."
+            )
+        
+        if not cliente.activo:
+            raise OperacionNoPermitidaError(
+                f"El cliente con código {cliente.codigo} no está activo."
+            )
+        
+        return cliente
+    
+    @staticmethod
+    def __validar_servicio(servicio):
+        """
+        Valida que el servicio sea una instancia de la clase Servicio.
+        """
+        
+        if not isinstance(servicio, Servicio):
+            raise ReservaInvalidaError(
+                "La reserva debe estar asociada a un servicio válido."
+            )
+        
+        if not servicio.activo:
+            raise OperacionNoPermitidaError(
+                f"El servicio con código {servicio.codigo} no está activo."
+            )
+        
+        if not servicio.disponible:
+            raise ServicioNoDisponibleError(
+                f"El servicio con código {servicio.codigo} no está disponible."
+            )
+        
+        return servicio
+    
+    @staticmethod
+    def __validar_duracion(duracion):
+        """
+        Valida que la duración sea un número positivo mayor que cero.
+        """
+        if isinstance(duracion, bool):
+            raise ReservaInvalidaError(
+                "La duración debe ser un valor numérico."
+            )
+        
+        try:
+            duracion = float(duracion)
+        
+        except (ValueError, TypeError) as error_original:
+            logger.error(
+                "Duracion invalida al crear una reserva %r.",
+                duracion
+            )
+            raise ReservaInvalidaError(
+                "La duración debe ser un valor numérico."
+            ) from error_original
+
+        if duracion <= 0:
+            raise ReservaInvalidaError(
+                "La duración de la reserva debe ser mayor que cero."
+            )
+        
+        return duracion
+    
+    @staticmethod
+    def __validar_porcentaje(valor, nombre):
+        """ Valida el porcentaje de impuesto o descuento. """
+        
+        if isinstance(valor, bool):
+            raise ReservaInvalidaError(
+                f"El {nombre} debe ser un valor numérico."
+            )
+            
+        try:
+            valor = float(valor)
+            
+        except (ValueError, TypeError) as error_original:
+            raise ReservaInvalidaError(
+                f"El {nombre} debe ser un valor numérico."
+            ) from error_original
+
+        if valor < 0 or valor > 1:
+            raise ReservaInvalidaError(
+                f"El {nombre} debe ser un valor entre 0 y 1."
+            )
+
+        return valor
+    
+    # Propiedades para consultar los atributos de la reserva
+    @property
+    def cliente(self):
+        """Permite consultar el cliente asociado a la reserva."""
+        return self.__cliente
+    
+    @property
+    def servicio(self):
+        """Permite consultar el servicio asociado a la reserva."""
+        return self.__servicio
+    
+    @property
+    def duracion(self):
+        """Permite consultar la duración de la reserva."""
+        return self.__duracion
+    
+    @property
+    def impuesto(self):
+        """Permite consultar el porcentaje de impuesto aplicado a la reserva."""
+        return self.__impuesto
+    
+    @property
+    def descuento(self):
+        """Permite consultar el porcentaje de descuento aplicado a la reserva."""
+        return self.__descuento
+    
+    @property
+    def estado(self):
+        """Permite consultar el estado de la reserva."""
+        return self.__estado
+
+    @property
+    def costo_total(self):
+        """Permite consultar el costo total de la reserva."""
+        return self.__costo_total
+    
+    def __cambiar_estado(self, nuevo_estado):
+        """
+        Valida y cambia el estado de la reserva.
+        """
+
+        if nuevo_estado not in self.ESTADOS_VALIDOS:
+            raise ReservaInvalidaError(
+                f"El estado '{nuevo_estado}' no es válido."
+            )
+
+        estado_anterior = self.__estado
+        self.__estado = nuevo_estado
+
+        logger.info(
+            "Reserva %s cambió del estado %s al estado %s.",
+            self.codigo,
+            estado_anterior,
+            nuevo_estado
+        )
+
+    def confirmar(self):
+        """
+        Confirma una reserva pendiente, calcula su costo
+        y cambia la disponibilidad del servicio.
+        """
+
+        if not self.activo:
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} se encuentra inactiva."
+            )
+
+        if self.__estado != "Pendiente":
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} no se puede confirmar "
+                f"porque está en estado {self.__estado}."
+            )
+            
+        # Verifico que el cliente continúe activo
+        if not self.__cliente.activo:
+            raise OperacionNoPermitidaError(
+                f"El cliente {self.__cliente.codigo} "
+                "se encuentra inactivo."
+            )
+
+        try:
+            # Verifico disponibilidad y calculo el costo
+            self.__servicio.verificar_disponibilidad()
+
+            costo = self.__servicio.calcular_costo(
+                self.__duracion,
+                self.__impuesto,
+                self.__descuento
+            )
+
+            if costo <= 0:
+                raise CalculoCostoError(
+                    "El costo calculado debe ser mayor que cero."
+                )
+
+        except ErrorSistema as error:
+            logger.error(
+                "No se pudo confirmar la reserva %s: %s",
+                self.codigo,
+                error
+            )
+
+            # Se conserva el tipo original del error
+            raise
+
+        else:
+            self.__servicio.deshabilitar_disponibilidad()
+
+            self.__costo_total = costo
+            self.__cambiar_estado("Confirmada")
+
+            logger.info(
+                "Reserva %s confirmada. Costo total: %.2f.",
+                self.codigo,
+                self.__costo_total
+            )
+
+            return self.__costo_total
+
+        finally:
+            logger.info(
+                "Finalizó el intento de confirmación "
+                "de la reserva %s.",
+                self.codigo
+            )
+            
+    
+    def cancelar(self):
+        """
+        Cancela una reserva pendiente o confirmada.
+
+        Si estaba confirmada, el servicio vuelve
+        a estar disponible.
+        """
+
+        if not self.activo:
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} se encuentra inactiva."
+                )
+        
+        if self.__estado == "Cancelada":
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} ya está cancelada."
+            )
+
+        if self.__estado == "Completada":
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} ya fue completada "
+                "y no puede cancelarse."
+            )
+
+        estado_anterior = self.__estado
+
+        if estado_anterior == "Confirmada":
+            self.__servicio.habilitar_disponibilidad()
+
+        self.__cambiar_estado("Cancelada")
+
+        logger.info(
+            "Reserva %s cancelada. Estado anterior: %s.",
+            self.codigo,
+            estado_anterior
+        )
+
+    def procesar(self):
+        """
+        Procesa una reserva confirmada.
+        """
+
+        if not self.activo:
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} se encuentra inactiva."
+            )
+
+        if self.__estado != "Confirmada":
+            raise OperacionNoPermitidaError(
+                f"La reserva {self.codigo} no puede procesarse "
+                f"porque está en estado {self.__estado}."
+            )
+
+        if self.__costo_total <= 0:
+            raise CalculoCostoError(
+                "La reserva no tiene un costo total válido."
+            )
+
+        self.__cambiar_estado("Completada")
+
+        logger.info(
+            "Reserva con código %s completada correctamente.",
+            self.codigo
+        )
+        
+        
+    def mostrar_informacion(self):
+        """
+        Implementa el método abstracto heredado de Entidad
+        y devuelve la información de la reserva.
+        """
+
+        estado_registro = (
+            "Activo"
+            if self.activo
+            else "Inactivo"
+        )
+
+
+        return (
+            f"Código de reserva: {self.codigo}\n"
+            f"Cliente: {self.__cliente.nombre}\n"
+            f"Servicio: {self.__servicio.nombre}\n"
+            f"Duración: {self.__duracion}\n"
+            f"Impuesto: {self.__impuesto * 100:.2f}%\n"
+            f"Descuento: {self.__descuento * 100:.2f}%\n"
+            f"Costo total: ${self.__costo_total:,.2f}\n"
+            f"Estado de reserva: {self.__estado}\n"
+            f"Estado del registro: {estado_registro}"
+        )
