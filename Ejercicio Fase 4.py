@@ -927,3 +927,108 @@ class AlquilerEquipo(Servicio):
             f"Cantidad: {self.__cantidad}\n"
             f"Depósito: ${self.__deposito:.2f}\n"
         )
+
+
+#_________________ Clase derivada (AsesoriaEspecializada)
+
+class AsesoriaEspecializada(Servicio):
+    """
+    Representa el servicio de asesoría especializada.
+    """
+    TIPOS_ASESORIA = {
+        "Básico": 1.00,
+        "Intermedio": 1.25,
+        "Avanzado": 1.50
+    }
+
+    def __init__(self, codigo, nombre, precio_base, 
+                 area_asesoria, nivel_asesoria, disponible=True):
+        
+        # Llamo al constructor de la clase base Servicio
+        super().__init__(codigo, nombre, precio_base, disponible)
+        
+        # Defino los atributos específicos de la asesoría especializada
+        self.__area_asesoria = area_asesoria
+        self.__nivel_asesoria = nivel_asesoria
+        
+        self.validar_parametros()
+        
+        logger.info(
+            "Servicio de asesoría especializada con código %s fue creado correctamente.",
+            self.codigo
+        )
+        
+    def validar_parametros(self):
+        """
+        Valida el área de especialización y el nivel de asesoría.
+        """
+        
+        if not isinstance(self.__area_asesoria, str):
+            raise DatoInvalidoError(
+                "El área de asesoría debe ser una cadena de texto."
+            )
+        
+        self.__area_asesoria = " ".join (
+            self.__area_asesoria.strip().split()
+        ).title()
+        
+        if not self.__area_asesoria:
+            raise DatoInvalidoError(
+                "El área de asesoría no puede estar vacía."
+            )
+
+        if not isinstance(self.__nivel_asesoria, str):
+            raise DatoInvalidoError(
+                "El nivel de asesoría debe ser una cadena de texto."
+            )
+
+        self.__nivel_asesoria = self.__nivel_asesoria.strip().capitalize()
+
+        if self.__nivel_asesoria not in self.TIPOS_ASESORIA:
+            raise DatoInvalidoError(
+                "El nivel de asesoría debe ser Básico, "
+                "Intermedio o Avanzado."
+            )
+
+    def calcular_costo(self, duracion, impuesto=0, descuento=0):
+        """
+        Calcula el costo según las horas y el nivel
+        de especialidad.
+        """
+
+        self.verificar_disponibilidad()
+        duracion = self._validar_duracion(duracion)
+
+        multiplicador = self.TIPOS_ASESORIA[self.__nivel_asesoria]
+
+        subtotal = (
+            self.precio_base
+            * duracion
+            * multiplicador
+        )
+
+        total = self._aplicar_ajustes(
+            subtotal,
+            impuesto,
+            descuento
+        )
+
+        logger.info(
+            "Costo calculado para la asesoría %s: %.2f.",
+            self.codigo,
+            total
+        )
+
+        return total
+
+    def describir_servicio(self):
+        """
+        Devuelve la descripción de la asesoría.
+        """
+
+        return (
+            f"Asesoría Especializada: {self.nombre}\n"
+            f"Área de Asesoría: {self.__area_asesoria}\n"
+            f"Nivel de Asesoría: {self.__nivel_asesoria}\n"
+            f"Multiplicador: {self.TIPOS_ASESORIA[self.__nivel_asesoria]:.2f}\n"
+        )
