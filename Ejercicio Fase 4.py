@@ -1707,3 +1707,48 @@ class SistemaSoftwareFJ:
             print("-" * 40)
             print(reserva.mostrar_informacion())
             print()
+
+
+# _______________ Funcion para ejecutar las operaciones         
+def ejecutar_operacion(numero, descripcion, operacion):
+    """
+    Ejecuta una operación sin detener el programa
+    cuando ocurre un error.
+    """
+
+    print("\n" + "-" * 12)
+    print(f"OPERACIÓN {numero}: {descripcion}")
+    print()
+
+    try:
+        resultado = operacion()
+
+    except ErrorSistema as error:
+        print("Resultado: error controlado.")
+        print(f"Detalle: {error}")
+
+        logger.error(
+            "Operación %s fallida. Detalle: %s",
+            numero,
+            error
+        )
+
+        return None
+
+    except Exception as error:
+        print("Resultado: error inesperado.")
+        print(f"Detalle: {error}")
+
+        logger.exception(
+            "Error inesperado en la operación %s.",
+            numero
+        )
+
+        return None
+
+    else:
+        print("Resultado: operación realizada correctamente.")
+        return resultado
+
+    finally:
+        print(f"Finalizó la operación {numero}.")
