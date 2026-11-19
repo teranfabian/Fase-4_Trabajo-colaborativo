@@ -1385,3 +1385,325 @@ class Reserva(Entidad):
             f"Estado de reserva: {self.__estado}\n"
             f"Estado del registro: {estado_registro}"
         )
+
+
+# ------------------------------------------------------------------
+# Parte 5: Sistema de Software, listas internas y pruebas finales
+
+class SistemaSoftwareFJ:
+    """
+    Administra los clientes, servicios y reservas
+    de la empresa Software FJ mediante listas internas.
+    """
+
+    def __init__(self):
+        # Listas privadas para almacenar los objetos del sistema
+        self.__clientes = []
+        self.__servicios = []
+        self.__reservas = []
+
+        logger.info(
+            "El sistema de gestión de Software FJ fue iniciado."
+        )
+
+
+    # Propiedades de consulta
+    @property
+    def clientes(self):
+        """
+        Devuelve una copia de la lista de clientes.
+
+        La copia evita que la lista original sea modificada
+        directamente desde fuera de la clase.
+        """
+        return self.__clientes.copy()
+
+    @property
+    def servicios(self):
+        """
+        Devuelve una copia de la lista de servicios.
+        """
+        return self.__servicios.copy()
+
+    @property
+    def reservas(self):
+        """
+        Devuelve una copia de la lista de reservas.
+        """
+        return self.__reservas.copy()
+
+    
+    # Gestión de clientes
+    def registrar_cliente(self, cliente):
+        """
+        Registra un cliente después de verificar su tipo,
+        código e identificación.
+        """
+
+        if not isinstance(cliente, Cliente):
+            raise DatoInvalidoError(
+                "Solo se pueden registrar objetos de la clase Cliente."
+            )
+
+        # Verifico que el código no esté repetido
+        for cliente_registrado in self.__clientes:
+            if cliente_registrado.codigo == cliente.codigo:
+                raise ClienteDuplicadoError(
+                    f"Ya existe un cliente con el código "
+                    f"{cliente.codigo}."
+                )
+
+        # Verifico que la identificación no esté repetida
+        for cliente_registrado in self.__clientes:
+            if (
+                cliente_registrado.identificacion
+                == cliente.identificacion
+            ):
+                raise ClienteDuplicadoError(
+                    "Ya existe un cliente con la identificación "
+                    f"{cliente.identificacion}."
+                )
+
+        self.__clientes.append(cliente)
+
+        logger.info(
+            "Cliente %s agregado a la lista del sistema.",
+            cliente.codigo
+        )
+
+        return cliente
+
+    def buscar_cliente(self, codigo):
+        """
+        Busca un cliente por su código.
+        """
+
+        if not isinstance(codigo, str):
+            raise DatoInvalidoError(
+                "El código del cliente debe ser una cadena de texto."
+            )
+
+        codigo = codigo.strip().upper()
+
+        for cliente in self.__clientes:
+            if cliente.codigo == codigo:
+                return cliente
+
+        raise ClienteNoEncontradoError(
+            f"No se encontró un cliente con el código {codigo}."
+        )
+
+    def listar_clientes(self):
+        """
+        Muestra los clientes registrados.
+        """
+
+        if not self.__clientes:
+            print("No hay clientes registrados.")
+            return
+
+        print("\nCLIENTES REGISTRADOS")
+
+        for cliente in self.__clientes:
+            print("-" * 40)
+            print(cliente.mostrar_informacion())
+            
+
+    
+    # Gestión de servicios
+    def agregar_servicio(self, servicio):
+        """
+        Agrega un servicio después de verificar
+        su tipo y su código.
+        """
+
+        if not isinstance(servicio, Servicio):
+            raise DatoInvalidoError(
+                "Solo se pueden agregar objetos derivados de Servicio."
+            )
+
+        for servicio_registrado in self.__servicios:
+            if servicio_registrado.codigo == servicio.codigo:
+                raise ServicioDuplicadoError(
+                    f"Ya existe un servicio con el código "
+                    f"{servicio.codigo}."
+                )
+
+        self.__servicios.append(servicio)
+
+        logger.info(
+            "Servicio %s agregado a la lista del sistema.",
+            servicio.codigo
+        )
+
+        return servicio
+
+    def buscar_servicio(self, codigo):
+        """
+        Busca un servicio por su código.
+        """
+
+        if not isinstance(codigo, str):
+            raise DatoInvalidoError(
+                "El código del servicio debe ser una cadena de texto."
+            )
+
+        codigo = codigo.strip().upper()
+
+        for servicio in self.__servicios:
+            if servicio.codigo == codigo:
+                return servicio
+
+        raise ServicioNoEncontradoError(
+            f"No se encontró un servicio con el código {codigo}."
+        )
+
+    def listar_servicios(self):
+        """
+        Muestra los servicios registrados.
+        """
+
+        if not self.__servicios:
+            print("No hay servicios registrados.")
+            return
+
+        print("\nSERVICIOS REGISTRADOS")
+
+        for servicio in self.__servicios:
+            print("-" * 40)
+            print(servicio.mostrar_informacion())
+            print(servicio.describir_servicio())
+            
+
+
+    # Gestión de reservas
+    def crear_reserva(
+        self,
+        codigo,
+        codigo_cliente,
+        codigo_servicio,
+        duracion,
+        impuesto=0,
+        descuento=0
+    ):
+        """
+        Busca el cliente y el servicio registrados,
+        crea la reserva y la agrega a la lista.
+        """
+
+        if not isinstance(codigo, str):
+            raise ReservaInvalidaError(
+                "El código de la reserva debe ser una cadena de texto."
+            )
+
+        codigo = codigo.strip().upper()
+
+        # Verifico que el código de la reserva no esté repetido
+        for reserva_registrada in self.__reservas:
+            if reserva_registrada.codigo == codigo:
+                raise ReservaDuplicadaError(
+                    f"Ya existe una reserva con el código {codigo}."
+                )
+
+        # Estos métodos generan excepciones si no encuentran los objetos
+        cliente = self.buscar_cliente(codigo_cliente)
+        servicio = self.buscar_servicio(codigo_servicio)
+
+        reserva = Reserva(
+            codigo=codigo,
+            cliente=cliente,
+            servicio=servicio,
+            duracion=duracion,
+            impuesto=impuesto,
+            descuento=descuento
+        )
+
+        self.__reservas.append(reserva)
+
+        logger.info(
+            "Reserva %s agregada a la lista del sistema.",
+            reserva.codigo
+        )
+
+        return reserva
+
+    def buscar_reserva(self, codigo):
+        """
+        Busca una reserva por su código.
+        """
+
+        if not isinstance(codigo, str):
+            raise ReservaInvalidaError(
+                "El código de la reserva debe ser una cadena de texto."
+            )
+
+        codigo = codigo.strip().upper()
+
+        for reserva in self.__reservas:
+            if reserva.codigo == codigo:
+                return reserva
+
+        raise ReservaInvalidaError(
+            f"No se encontró una reserva con el código {codigo}."
+        )
+
+    def confirmar_reserva(self, codigo):
+        """
+        Busca y confirma una reserva.
+        """
+
+        reserva = self.buscar_reserva(codigo)
+        costo = reserva.confirmar()
+
+        logger.info(
+            "La confirmación de la reserva %s fue gestionada "
+            "por el sistema.",
+            reserva.codigo
+        )
+
+        return costo
+
+    def cancelar_reserva(self, codigo):
+        """
+        Busca y cancela una reserva.
+        """
+
+        reserva = self.buscar_reserva(codigo)
+        reserva.cancelar()
+
+        logger.info(
+            "La cancelación de la reserva %s fue gestionada "
+            "por el sistema.",
+            reserva.codigo
+        )
+
+    def procesar_reserva(self, codigo):
+        """
+        Busca y procesa una reserva confirmada.
+        """
+
+        reserva = self.buscar_reserva(codigo)
+        reserva.procesar()
+
+        logger.info(
+            "El procesamiento de la reserva %s fue gestionado "
+            "por el sistema.",
+            reserva.codigo
+        )
+
+
+    def listar_reservas(self):
+        """
+        Muestra las reservas registradas.
+        """
+
+        if not self.__reservas:
+            print("No hay reservas registradas.")
+            return
+
+        print("\nRESERVAS REGISTRADAS")
+
+        for reserva in self.__reservas:
+            print("-" * 40)
+            print(reserva.mostrar_informacion())
+            print()
