@@ -1752,3 +1752,235 @@ def ejecutar_operacion(numero, descripcion, operacion):
 
     finally:
         print(f"Finalizó la operación {numero}.")
+
+
+# _____________________________ Funcion para ejecutar el programa
+def ejecutar_programa():
+    """
+    Ejecuta las operaciones de demostración del sistema.
+    """
+    print()
+    print("-" * 75)
+    print("SISTEMA INTEGRAL DE GESTIÓN DE CLIENTES, SERVICIOS Y RESERVAS - SOFTWARE FJ")
+    
+
+    sistema = SistemaSoftwareFJ()
+
+    # 1. Cliente válido
+    ejecutar_operacion(
+        1,
+        "Registrar un cliente válido",
+        lambda: sistema.registrar_cliente(
+            Cliente(
+                codigo="C001",
+                identificacion="1234567890",
+                nombre="Fabian Teran Mendoza",
+                email="fabian183@gmail.com",
+                telefono="3214580914"
+            )
+        )
+    )
+
+    # 2. Cliente inválido
+    ejecutar_operacion(
+        2,
+        "Registrar un cliente con email inválido",
+        lambda: sistema.registrar_cliente(
+            Cliente(
+                codigo="C002",
+                identificacion="1076543210",
+                nombre="Laura Martinez Coronado",
+                email="correo-invalido",
+                telefono="3014567890"
+            )
+        )
+    )
+
+    # 3. Segundo cliente válido
+    ejecutar_operacion(
+        3,
+        "Registrar un segundo cliente válido",
+        lambda: sistema.registrar_cliente(
+            Cliente(
+                codigo="C002",
+                identificacion="1048350125",
+                nombre="Brenda Sofia Mercado Holguin",
+                email="brendasofime@gmail.com",
+                telefono="3014567890"
+            )
+        )
+    )
+
+
+    # 5. Sala válida
+    ejecutar_operacion(
+        5,
+        "Registrar un servicio de reserva de sala",
+        lambda: sistema.agregar_servicio(
+            ReservaSala(
+                codigo="S001",
+                nombre="Sala de reuniones",
+                precio_base=50000,
+                capacidad=20,
+                tipo_sala="Ejecutiva",
+                recargo=10000
+            )
+        )
+    )
+
+    # 6. Servicio inválido
+    ejecutar_operacion(
+        6,
+        "Registrar un servicio con precio negativo",
+        lambda: sistema.agregar_servicio(
+            ReservaSala(
+                codigo="S004",
+                nombre="Sala pequeña",
+                precio_base=-25000,
+                capacidad=8,
+                tipo_sala="Básica",
+                recargo=0
+            )
+        )
+    )
+
+    # 7. Alquiler de equipos
+    ejecutar_operacion(
+        7,
+        "Registrar un alquiler de equipos",
+        lambda: sistema.agregar_servicio(
+            AlquilerEquipo(
+                codigo="S002",
+                nombre="Alquiler de computadores",
+                precio_base=300000,
+                tipo_equipo="Computador portátil",
+                cantidad=5,
+                deposito=100000
+            )
+        )
+    )
+
+    # 8. Asesoría especializada
+    ejecutar_operacion(
+        8,
+        "Registrar una asesoría especializada",
+        lambda: sistema.agregar_servicio(
+            AsesoriaEspecializada(
+                codigo="S003",
+                nombre="Asesoría de software",
+                precio_base=100000,
+                area_asesoria="Desarrollo de software",
+                nivel_asesoria="Avanzado"
+            )
+        )
+    )
+
+    # 9. Reserva válida
+    ejecutar_operacion(
+        9,
+        "Crear una reserva válida",
+        lambda: sistema.crear_reserva(
+            codigo="R001",
+            codigo_cliente="C001",
+            codigo_servicio="S001",
+            duracion=5,
+            impuesto=0.19,
+            descuento=0.10
+        )
+    )
+
+    # 10. Confirmación válida
+    costo = ejecutar_operacion(
+        10,
+        "Confirmar la reserva R001",
+        lambda: sistema.confirmar_reserva("R001")
+    )
+
+    if costo is not None:
+        print(f"Costo confirmado: ${costo:,.2f}")
+
+    # 11. Servicio ocupado
+    ejecutar_operacion(
+        11,
+        "Intentar reservar una sala ocupada",
+        lambda: sistema.crear_reserva(
+            codigo="R002",
+            codigo_cliente="C002",
+            codigo_servicio="S001",
+            duracion=3
+        )
+    )
+
+    # 12. Duración negativa
+    ejecutar_operacion(
+        12,
+        "Crear una reserva con duración negativa",
+        lambda: sistema.crear_reserva(
+            codigo="R003",
+            codigo_cliente="C002",
+            codigo_servicio="S002",
+            duracion=-2
+        )
+    )
+
+    # 13. Procesar reserva
+    ejecutar_operacion(
+        13,
+        "Procesar la reserva R001",
+        lambda: sistema.procesar_reserva("R001")
+    )
+
+    # 14. Cancelación no permitida
+    ejecutar_operacion(
+        14,
+        "Cancelar una reserva completada",
+        lambda: sistema.cancelar_reserva("R001")
+    )
+
+    # 15. Cliente inexistente
+    ejecutar_operacion(
+        15,
+        "Buscar un cliente inexistente",
+        lambda: sistema.buscar_cliente("C999")
+    )
+
+    ejecutar_operacion(
+    16,
+    "Crear una reserva válida de equipos",
+    lambda: sistema.crear_reserva(
+        codigo="R004",
+        codigo_cliente="C002",
+        codigo_servicio="S002",
+        duracion=3,
+        impuesto=0.19,
+        descuento=0.05
+    )
+)
+
+    ejecutar_operacion(
+        17,
+        "Confirmar la reserva de equipos R004",
+        lambda: sistema.confirmar_reserva("R004")
+    )
+
+    ejecutar_operacion(
+        18,
+        "Cancelar la reserva confirmada R004",
+        lambda: sistema.cancelar_reserva("R004")
+    )
+    
+    # Listados finales
+    sistema.listar_clientes()
+    sistema.listar_servicios()
+    sistema.listar_reservas()
+
+
+    print()
+    print("RESUMEN FINAL")
+    print("-" * 40)
+    print(f"Clientes registrados: {len(sistema.clientes)}")
+    print(f"Servicios registrados: {len(sistema.servicios)}")
+    print(f"Reservas registradas: {len(sistema.reservas)}")
+    print("El programa terminó sin interrumpirse.")
+    print()
+    print("-" * 75)
