@@ -1984,3 +1984,7 @@ def ejecutar_programa():
     print("El programa terminó sin interrumpirse.")
     print()
     print("-" * 75)
+
+
+if __name__ == "__main__":
+    ejecutar_programa()
